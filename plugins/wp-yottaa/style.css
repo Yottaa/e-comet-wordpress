@@ -1,0 +1,14 @@
+.live, .passed {
+    color: #009900;
+    font-weight: bold;
+}
+
+.paused, .failed {
+    color: #cc0000;
+    font-weight: bold;
+}
+
+.yottaa-logo {
+    height: 32px;
+    float: right;
+}
