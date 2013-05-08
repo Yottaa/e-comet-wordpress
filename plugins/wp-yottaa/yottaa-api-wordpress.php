@@ -233,6 +233,22 @@ class YottaaWordpressAPI extends YottaaAPI {
         return $json_output;
     }
   }
+
+  /**
+   * Logs a message.
+   *
+   * @param $message
+   * @return void
+   */
+  public function log($message) {
+    if ( WP_DEBUG === true ) {
+      if ( is_array($message) || is_object($message) ) {
+        error_log( print_r($message, true) );
+      } else {
+        error_log( $message );
+      }
+    }
+  }
 }
 
 /**
