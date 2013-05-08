@@ -66,14 +66,20 @@ class WPYottaa {
    */
   function WPYottaaPurgeCommonObjects() {
     $yottaa_api = yottaa_api_wordpress();
-    $base_url = get_site_url();
-    $paths = array($base_url . "/" , $base_url . "/feed/", $base_url . "/feed/atom/" , $base_url . "/category/(.*)");
-
+    $path_configs = array(array("condition" => "/", "name" => "URI"),
+                          array("condition" => "/feed/", "name" => "URI"),
+                          array("condition" => "/feed/atom/", "name" => "URI"),
+                          array("condition" => "/category/(.*)", "name" => "URI", "operator" => "REGEX"));
     // Also purges page navigation
-    if (get_option($this->wpy_update_pagenavi_optname) == 1) {
-       array_push($paths, $base_url . "/page/(.*)");
+    if ($yottaa_api->getUpdatePageNavParameter() == 1) {
+      array_push($path_configs, array("condition" => "/page/(.*)", "name" => "URI", "operator" => "REGEX"));
     }
-    $yottaa_api->flushPaths($paths);
+    if ($yottaa_api->getEnableLoggingParameter() == 1) {
+      $yottaa_api->log('Flushed Yottaa cache for common objects.');
+    }
+    $results =  $yottaa_api->flushPaths($path_configs);
+    $yottaa_api->log(json_encode($results));
+    return $results;
   }
 
   /**
@@ -81,21 +87,27 @@ class WPYottaa {
    */
   function WPYottaaPurgeAll() {
     $yottaa_api = yottaa_api_wordpress();
-    $yottaa_api->log('Flushed all Yottaa cache.');
+    if ($yottaa_api->getEnableLoggingParameter() == 1) {
+      $yottaa_api->log('Flushed all Yottaa cache.');
+    }
     return $yottaa_api->flush();
   }
 
   /**
-   * WPYottaaPurgeURL - Using a URL, clear the cache
+   * Using a URL, clear the cache
    *
    * @param $wpy_purl
    * @return void
    */
   function WPYottaaPurgeURL($wpy_purl) {
-    //$wpy_purl = str_replace(get_bloginfo('url'),"",$wpy_purl);
     $yottaa_api = yottaa_api_wordpress();
-    $yottaa_api->log('Flushed Yottaa cache mapped to URL ' . $wpy_purl . '.');
-    return $yottaa_api->flushPaths(array($wpy_purl));
+    if ($yottaa_api->getAutoClearCacheParameter() == 1) {
+      $wpy_purl = str_replace(get_bloginfo('url'),"",$wpy_purl);
+      if ($yottaa_api->getEnableLoggingParameter() == 1) {
+        $yottaa_api->log('Flushed Yottaa cache mapped to URL ' . $wpy_purl . '.');
+      }
+      return $yottaa_api->flushPaths(array($wpy_purl));
+    }
   }
 
   /**
@@ -108,24 +120,35 @@ class WPYottaa {
    */
   function WPYottaaPurgePostStatus($old, $new, $p) {
       $yottaa_api = yottaa_api_wordpress();
-      $yottaa_api->log('Flushed Yottaa cache mapped to ID ' . $p->ID . '.');
-	  return $this->WPYottaaPurgePost($p->ID);
+      if ($yottaa_api->getAutoClearCacheParameter() == 1) {
+        if ($yottaa_api->getEnableLoggingParameter() == 1) {
+          $yottaa_api->log('Flushed Yottaa cache mapped to post with id ' . $p->ID . '.');
+        }
+	    return $this->WPYottaaPurgePost($p->ID);
+      }
   }
 
   /**
-   * WPYottaaPurgePost - Takes a post id (number) as an argument and generates
+   * Takes a post id (number) as an argument and generates
    * the location path to the object that will be purged based on the permalink.
    *
    * @param $wpy_postid
    * @return mixed
    */
   function WPYottaaPurgePost($wpy_postid) {
-    $wpy_url = get_permalink($wpy_postid);
-    //$wpy_permalink = str_replace(get_bloginfo('url'),"",$wpy_url);
-
     $yottaa_api = yottaa_api_wordpress();
-    $yottaa_api->log('Flushed Yottaa cache for post with id ' . $wpy_postid . '.');
-    return $yottaa_api->flushPaths(array($wpy_url));
+    if ($yottaa_api->getAutoClearCacheParameter() == 1) {
+      $wpy_url = get_permalink($wpy_postid);
+      $wpy_permalink = str_replace(get_bloginfo('url'),"",$wpy_url);
+      if ($yottaa_api->getEnableLoggingParameter() == 1) {
+        $yottaa_api->log('Flushed Yottaa cache for post with id ' . $wpy_postid . ' and url ' . $wpy_url . '.');
+      }
+      $results = $yottaa_api->flushPaths(array(array("condition" => $wpy_permalink, "name" => "URI")));
+      if ($yottaa_api->getEnableLoggingParameter() == 1) {
+        $yottaa_api->log(json_encode($results));
+      }
+      return $results;
+    }
   }
 
   /**
@@ -138,22 +161,25 @@ class WPYottaa {
     $comment = get_comment($wpy_commentid);
     $wpy_commentapproved = $comment->comment_approved;
 
+    $yottaa_api = yottaa_api_wordpress();
     // If approved or deleting...
-    if ($wpy_commentapproved == 1 || $wpy_commentapproved == 'trash') {
+    if ($yottaa_api->getAutoClearCacheParameter() == 1 && ($wpy_commentapproved == 1 || $wpy_commentapproved == 'trash') ) {
        $wpy_postid = $comment->comment_post_ID;
 
-       // Popup comments
-       //$this->WPYottaaPurgeObject('/\\\?comments_popup=' . $wpy_postid);
+       $path_configs = array(array("condition" => "/\\\?comments_popup=" . $wpy_postid, "name" => "URI", "operator" => "REGEX"));
 
        // Also purges comments navigation
-       //if (get_option($this->wpy_update_commentnavi_optname) == 1) {
-       //   $this->WPYottaaPurgeObject('/\\\?comments_popup=' . $wpy_postid . '&(.*)');
-       //}
-       $yottaa_api = yottaa_api_wordpress();
-       $yottaa_api->log('Flushed Yottaa cache for comment with id ' . $wpy_commentid . '.');
-       return $yottaa_api->flush();
-    } else {
-       return array();
+       if ($yottaa_api -> getUpdateCommentNavParameter() == 1) {
+         array_push($path_configs, array("condition" => '/\\\?comments_popup=' . $wpy_postid . '&(.*)', "name" => "URI", "operator" => "REGEX"));
+       }
+       if ($yottaa_api->getEnableLoggingParameter() == 1) {
+         $yottaa_api->log('Flushed Yottaa cache for comment with id ' . $wpy_commentid . '.');
+       }
+       $results =  $yottaa_api->flushPaths($path_configs);
+       if ($yottaa_api->getEnableLoggingParameter() == 1) {
+         $yottaa_api->log(json_encode($results));
+       }
+       return $results;
     }
   }
 
@@ -234,10 +260,22 @@ class WPYottaa {
               $msg = '<div class="error"><p>' . __('Invalid input for Yottaa account configuration!','wp-yottaa' ) .'</p></div>';
             }
           } elseif (isset($_POST['wpyottaa_save_settings'])) {
-             $val = !empty($_POST[$yottaa_api->wpy_auto_clear_cache_optname]);
+             $val = empty($_POST[$yottaa_api->wpy_auto_clear_cache_optname]) ? 0 : 1;
              $yottaa_api->setAutoClearCacheParameter($val);
-             $status = $val ? 'enabled' : 'disabled';
-             $msg = '<div class="updated"><p>' . __('Automatically clearing Yottaa\'s site optimizer cache is ','wp-yottaa' ) . $status .'.</p></div>';
+             $status = $val == 1 ? 'enabled' : 'disabled';
+             $msg = '<div class="updated"><p>' . __('Automatically clearing Yottaa\'s site optimizer cache is ','wp-yottaa' ) . $status .'.</p>';
+             $val2 = empty($_POST[$yottaa_api->wpy_update_pagenav_optname]) ? 0 : 1;
+             $yottaa_api->setUpdatePageNavParameter($val2);
+             $status2 = $val2 == 1 ? 'enabled' : 'disabled';
+             $msg = $msg . '<p>' . __('Clearing Yottaa\'s site optimizer cache for page navigation is ','wp-yottaa' ) . $status2 .'.</p>';
+             $val3 = empty($_POST[$yottaa_api->wpy_update_commentnav_optname]) ? 0 : 1;
+             $yottaa_api->setUpdateCommentNavParameter($val3);
+             $status3 = $val3 == 1 ? 'enabled' : 'disabled';
+             $msg = $msg . '<p>' . __('Clearing Yottaa\'s site optimizer cache for comment navigation is ','wp-yottaa' ) . $status3 .'.</p>';
+             $val4 = empty($_POST[$yottaa_api->wpy_enable_logging_optname]) ? 0 : 1;
+             $yottaa_api->setEnableLoggingParameter($val4);
+             $status4 = $val4 == 1 ? 'enabled' : 'disabled';
+             $msg = $msg . '<p>' . __('Logging for Yottaa service calls is ','wp-yottaa' ) . $status4 .'.</p></div>';
           } elseif (isset($_POST['wpyottaa_clear_cache'])) {
               $json_output = $this->WPYottaaPurgeAll();
 
@@ -433,9 +471,18 @@ class WPYottaa {
                       echo '<h3>Settings</h3>';
                       echo '<table>';
                       $wpy_auto_clear_cache_optval = $yottaa_api->getAutoClearCacheParameter();
-                      $checked = $wpy_auto_clear_cache_optval ? 'checked="checked"' : '';
-                      echo '<tr><td><input type="checkbox" name="' . $yottaa_api->wpy_auto_clear_cache_optname .'" value="TRUE" '. $checked .'>  '. __('Automatically clear Yottaa\'s site optimizer cache on node changes.','wp-yottaa')  . '</td></tr>';
-                      echo '<tr><td><input type="submit" name="wpyottaa_save_settings"  class="button-primary" value="Save Settings" /></td></tr>';
+                      $checked = $wpy_auto_clear_cache_optval == 1 ? 'checked="checked"' : '';
+                      echo '<tr><td><input type="checkbox" name="' . $yottaa_api->wpy_auto_clear_cache_optname .'" value="1" '. $checked .'>  '. __('Automatically clear Yottaa\'s site optimizer cache on post/comment changes.','wp-yottaa')  . '</td></tr>';
+                      $wpy_update_pagenav_optval = $yottaa_api->getUpdatePageNavParameter();
+                      $checked2 = $wpy_update_pagenav_optval == 1 ? 'checked="checked"' : '';
+                      echo '<tr><td><input type="checkbox" name="' . $yottaa_api->wpy_update_pagenav_optname .'" value="1" '. $checked2 .'>  '. __('Clear Yottaa\'s site optimizer cache for navigation pages.','wp-yottaa')  . '</td></tr>';
+                      $wpy_update_commentnav_optval = $yottaa_api->getUpdateCommentNavParameter();
+                      $checked3 = $wpy_update_commentnav_optval == 1 ? 'checked="checked"' : '';
+                      echo '<tr><td><input type="checkbox" name="' . $yottaa_api->wpy_update_commentnav_optname .'" value="1" '. $checked3 .'>  '. __('Clear Yottaa\'s site optimizer cache for comment navigation pages.','wp-yottaa')  . '</td></tr>';
+                      $wpy_enable_logging_optval = $yottaa_api->getEnableLoggingParameter();
+                      $checked4 = $wpy_enable_logging_optval == 1 ? 'checked="checked"' : '';
+                      echo '<tr><td><input type="checkbox" name="' . $yottaa_api->wpy_enable_logging_optname .'" value="1" '. $checked4 .'>  '. __('Enable logging for Yottaa service calls.','wp-yottaa')  . '</td></tr>';
+                      echo '<tr><td><p><input type="submit" name="wpyottaa_save_settings"  class="button-primary" value="Save Settings" /></p></td></tr>';
                       echo '</table>';
                       echo '<table>';
                       echo '<tr><td><span class="row-title">User Id</span></td><td>' . $user_id . '</td></tr>';
