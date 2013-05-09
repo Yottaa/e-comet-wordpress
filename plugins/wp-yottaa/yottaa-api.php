@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * Base Yottaa API Class for PHP based plugins.
  */
 
@@ -58,7 +59,8 @@ class YottaaAPI {
     if (is_array($name)) {
         $fname = isset($name['first_name']) ? $name['first_name'] : "";
         $lname = isset($name['last_name']) ? $name['last_name'] : "";
-    } else {
+    }
+    else {
         list($fname, $lname) = explode(" ", $name);
     }
 
@@ -98,7 +100,7 @@ class YottaaAPI {
    * @param $sid
    * @return mixed
    */
-  public function getRuntimeStatus($key,$uid,$sid) {
+  public function getRuntimeStatus($key, $uid, $sid) {
     return $this->call('sites/' . $sid, array(
       'user_id' => $uid,
     ), 'GET', $key);
@@ -123,7 +125,7 @@ class YottaaAPI {
     $aggregated_return = array();
     foreach ($path_configs as $path_config) {
       $result = $this->call('sites/' . $this->sid . '/purge_cache?user_id=' . $this->uid . '&type=html', $path_config, 'POST', $this->key, TRUE);
-      array_push($aggregated_return, array("config"=> $path_config, "result" => $result));
+      array_push($aggregated_return, array("config" => $path_config, "result" => $result));
     }
     return $aggregated_return;
   }
@@ -187,7 +189,8 @@ class YottaaAPI {
     // Data goes in the path for a GET request
     if ($post_json) {
       $parts['path'] .= '?' . $parts['query'];
-    } else {
+    }
+    else {
       $parts['path'] .= '?' . $post_string;
     }
 
