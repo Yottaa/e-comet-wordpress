@@ -217,6 +217,11 @@ class YottaaAPI {
       $result .= fgets($fp, 128);
     }
     fclose($fp);
+
+    if ($this->getEnableLoggingParameter() == 1) {
+        $this->log($result);
+    }
+
     return $result;
   }
 
@@ -230,21 +235,27 @@ class YottaaAPI {
    */
   private function parseHttpResponse($content = NULL) {
     if (empty($content)) {
-      return FALSE;
+      return '{"error" : "Empty Response"}';
     }
     // split into array, headers and content.
     $hunks = explode("\r\n\r\n", trim($content));
-    if (!is_array($hunks) or count($hunks) < 2) {
-      return FALSE;
+    if (!is_array($hunks)) {
+      return json_encode(array("error"=>trim($content)));
     }
-    $header = $hunks[count($hunks) - 2];
-    $body = $hunks[count($hunks) - 1];
+    // add support for empty body
+    if (count($hunks) < 2) {
+      $header = $hunks[count($hunks) - 1];
+      $body = "";
+    }
+    else {
+      $header = $hunks[count($hunks) - 2];
+      $body = $hunks[count($hunks) - 1];
+    }
     $headers = explode("\n", $header);
     unset($hunks);
     unset($header);
     if (!$this->validateHttpResponse($headers)) {
-      return '{"error" : ' . trim($body) . '}';
-      //return FALSE;
+      return json_encode(array("error"=>trim($content)));
     }
     if (in_array('Transfer-Coding: chunked', $headers)) {
       return trim($this->unchunkHttpResponse($body));
