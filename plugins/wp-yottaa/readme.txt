@@ -1,7 +1,7 @@
 === WordPress Yottaa ===
-Contributors: 
-Donate link: 
-Tags: cache, caching, performance, Yottaa, purge, speed
+Contributors: Yottaa Inc.
+Donate link: https://github.com/Yottaa/e-comet-wordpress
+Tags: cache, caching, performance, Yottaa, purge, speed, optimization
 Requires at least: 2.9.2
 * Tested up to: 3.5.1
 * Stable tag: 0.1
@@ -10,10 +10,13 @@ WordPress Yottaa is a plugin that provides performance optimization and caching 
 
 == Description ==
 
-This plugin helps to sign up a new Yottaa account or register an existing Yottaa account.
-This plugin purges your Yottaa cache when content is added or edited. This includes when a new post is
-added, a post is updated or when a comment is posted to your blog.
-
+This plugin is intended to be installed within WordPress to provide Yottaa optimizer status info, links,
+action buttons to turn on/off Yottaa optimizer or perform full-flush of Yottaa caches, Yottaa setting checking etc.
+within WordPress admin panel.
+The plugin can also be configured to capture WordPress content events and purge HTML cache items for related content
+on-demand.
+It can also help user to sign up new account with Yottaa or register it with an existing Yottaa account
+without accessing Yottaa app console.
 
 == Installation ==
 
@@ -28,7 +31,7 @@ This section describes how to install the plugin and get it working.
 
 Yes.
 
-= My Plugins are seeing the Yottaa server's IP rather than the websurfer IP =
+= My Plugins are seeing the Yottaa server's IP rather than the web surfer IP =
 
 In wp-config.php, near the top, put the following code:
 
@@ -45,7 +48,7 @@ surfer's IP rather than the server's IP.
 
 == Screenshots ==
 
-1. Screenshot of the adminstration interface.
+1. Screenshot of the plugin administration interface.
 
 == Changelog ==
 

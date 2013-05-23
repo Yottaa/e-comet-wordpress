@@ -3,11 +3,10 @@
 Plugin Name: Yottaa for Wordpress
 Plugin URI: http://github.com/Yottaa/e-comet-wordpress
 Version: 0.1
-Author: Yottaa Inc.
-Description: A plugin for optimizing site performance through Yottaa.
+Author: <a href="http://www.yottaa.com">Yottaa Inc.</a>
+Description: This plugin is intended to be installed within WordPress to provide Yottaa optimizer status info, links, action buttons to turn on/off Yottaa optimizer or perform full-flush of Yottaa caches, Yottaa setting checking etc. within WordPress admin panel. The plugin can also be configured to capture WordPress content events and purge HTML cache items for related content on-demand. It can also help user to sign up new account with Yottaa or register it with an existing Yottaa account without accessing Yottaa app console.
 
 Copyright Yottaa
-
 */
 
 
@@ -529,4 +528,3 @@ class WPYottaa {
 }
 
 $wpyottaa = new WPYottaa();
-?>

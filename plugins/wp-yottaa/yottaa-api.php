@@ -159,7 +159,12 @@ class YottaaAPI {
    */
   private function call($path, $params, $method, $key , $post_json=FALSE) {
     $output = $this->post_async($this->api . $path, $params, $method, $key, $post_json);
-    return json_decode($this->parseHttpResponse($output), TRUE);
+    $json_results = json_decode($this->parseHttpResponse($output), TRUE);
+    if (!isset($json_results["error"]) && isset($json_results["error_response"])) {
+      $json_results["error"] = $json_results["error_response"];
+      unset($json_results["error_response"]);
+    }
+    return $json_results;
   }
 
   /**
@@ -322,13 +327,38 @@ class YottaaAPI {
   }
 
   /**
+   * Updates all Yottaa parameters.
+   *
+   * @param $key
+   * @param $uid
+   * @param $sid
+   * @return void
+   */
+  public function updateParameters($key, $uid, $sid) {
+    $this->key = $key;
+    $this->uid = $uid;
+    $this->sid = $sid;
+  }
+
+  /**
+   * Deletes all Yottaa parameters.
+   *
+   * @return void
+   */
+  public function deleteParameters() {
+    $this->key = NULL;
+    $this->uid = NULL;
+    $this->sid = NULL;
+  }
+
+  /**
    * Post-processes Yottaa site settings.
    *
    * @param $json_output
    * @return array
    */
   protected function postProcessingSettings($json_output) {
-    return array();
+    return $json_output;
   }
 
   /**

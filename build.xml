@@ -1,7 +1,7 @@
 <project name="yottaa.wordpress" default="dev">
 
-    <property name="module.id" value="wp-yottaa"/>
-    <property name="module.title" value="Yottaa Wordpress Integration"/>
+    <property name="plugin.id" value="wp-yottaa"/>
+    <property name="plugin.title" value="Yottaa Wordpress Integration"/>
 
     <property file="custom-build.properties"/>
 
@@ -11,12 +11,12 @@
 
     <property name="plugins.file" value="${project.dir}/plugins"/>
 
-    <property name="yottaa.plugin.dir" value="${plugins.file}/${module.id}"/>
+    <property name="yottaa.plugin.dir" value="${plugins.file}/${plugin.id}"/>
 
     <property name="build.dir" value="${project.dir}/build"/>
     <property name="dist.dir"  value="${project.dir}/dist"/>
 
-    <property name="module.package.file" value="${build.dir}/${module.id}.tar.gz"/>
+    <property name="plugin.package.file" value="${build.dir}/${plugin.id}.zip"/>
 
     <target name="setup" description="Creates all required directories">
         <mkdir dir="${dist.dir}"/>
@@ -30,25 +30,25 @@
         </delete>
     </target>
 
-    <target name="package-wordpress-module" description="Packages Wordpress module">
-        <echo>Packaging ${module.title} Module file</echo>
-        <tar destfile="${module.package.file}" compression="gzip">
-            <tarfileset dir="${plugins.file}"/>
-        </tar>
+    <target name="package-wordpress-plugin" description="Packages Wordpress plugin">
+        <echo>Packaging ${plugin.title} Plugin file</echo>
+        <zip destfile="${plugin.package.file}">
+            <zipfileset dir="${plugins.file}"/>
+        </zip>
     </target>
 
-    <target name="package" depends="clean,setup,package-wordpress-module"/>
+    <target name="package" depends="clean,setup,package-wordpress-plugin"/>
 
     <target name="dist" depends="package">
         <copy todir="${dist.dir}" verbose="true">
             <fileset dir="${build.dir}">
-                <include name="*.tar.gz"/>
+                <include name="*.zip"/>
             </fileset>
         </copy>
     </target>
 
     <target name="dev">
-        <copy todir="${wordpress.location}/wp-content/plugins/${module.id}" verbose="true">
+        <copy todir="${wordpress.location}/wp-content/plugins/${plugin.id}" verbose="true">
             <fileset dir="${yottaa.plugin.dir}"/>
         </copy>
     </target>
@@ -58,12 +58,12 @@
                  username="${scp.wordpress.username}"
                  password="${scp.wordpress.password}"
                  trust="true"
-                 command="rm -r ${scp.wordpress.basepath}/wp-content/plugins/${module.id}/*"
+                 command="rm -r ${scp.wordpress.basepath}/wp-content/plugins/${plugin.id}/*"
                  failonerror="false"/>
     </target>
 
     <target name="publish" depends="unpublish">
-        <scp todir="${scp.wordpress.username}@${scp.wordpress.host}:${scp.wordpress.basepath}/wp-content/plugins/${module.id}"
+        <scp todir="${scp.wordpress.username}@${scp.wordpress.host}:${scp.wordpress.basepath}/wp-content/plugins/${plugin.id}"
              password="${scp.wordpress.password}"
              trust="true"
              verbose="true"

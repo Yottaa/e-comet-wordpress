@@ -45,6 +45,7 @@ class YottaaWordpressAPI extends YottaaAPI {
     update_option($this->wpy_user_id_optname, $uid);
     update_option($this->wpy_api_key_optname, $key);
     update_option($this->wpy_site_id_optname, $sid);
+    parent::updateParameters($key, $uid, $sid);
   }
 
   /**
@@ -56,6 +57,7 @@ class YottaaWordpressAPI extends YottaaAPI {
     delete_option($this->wpy_user_id_optname);
     delete_option($this->wpy_api_key_optname);
     delete_option($this->wpy_site_id_optname);
+    parent::deleteParameters();
   }
 
   /**
