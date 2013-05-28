@@ -435,8 +435,8 @@ class WPYottaa {
                           elseif ($yottaa_status == 'live') {
                               echo '<div>Your site is currently in <span class="live">Live</span>.</div>';
                           }
-                          elseif ($yottaa_status == 'paused') {
-                              echo '<div>Your site is currently in <span class="paused">Paused</span>.</div>';
+                          elseif ($yottaa_status == 'transparent proxy' || $yottaa_status == 'bypass') {
+                              echo '<div>Your site is currently in <span class="paused">Paused (' . $yottaa_status .' mode)</span>.</div>';
                           }
                       }
                       else {
@@ -459,7 +459,7 @@ class WPYottaa {
                           echo '<p><input type="submit" name="wpyottaa_pause_optimizations"  class="button-primary" value="Pause Optimizations" /></p>';
                           echo '<p>Activating your site allows all e-commerce visitors to receive the benefits out Yottaa\'s site speed optimizer.</p>';
                         }
-                        elseif ($yottaa_status == 'paused') {
+                        elseif ($yottaa_status == 'transparent proxy' || $yottaa_status == 'bypass') {
                           echo '<p><input type="submit" name="wpyottaa_resume_optimizations"  class="button-primary" value="Resume Optimizations" /></p>';
                           echo '<p>Starting optimization will apply optimizations on your website within 5minutes.</p>';
                         }
