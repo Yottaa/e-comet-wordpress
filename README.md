@@ -97,7 +97,7 @@ Whether you're already a Yottaa Site Optimizer user or want to try it for the fi
 
 ![alt text][plugin]
 
-[plugin]: https://raw.github.com/Yottaa/e-comet-wordpress/master/docs/images/1.png "Plugin screen shot"
+[plugin]: https://raw.github.com/Yottaa/e-comet-wordpress/master/docs/images/1.png?login=yong-qu-yottaa&token=f1a119d6b754c3d1ef545c2708d6972f "Plugin screen shot"
 
 ## Yottaa Optimization Settings ##
 
@@ -125,7 +125,7 @@ Whether you're already a Yottaa Site Optimizer user or want to try it for the fi
 
 ![alt text][settings]
 
-[settings]: https://raw.github.com/Yottaa/e-comet-wordpress/master/docs/images/4.png "Settings screen shot"
+[settings]: https://raw.github.com/Yottaa/e-comet-wordpress/master/docs/images/4.png?login=yong-qu-yottaa&token=f1a119d6b754c3d1ef545c2708d6972f "Settings screen shot"
 
 ## Plugin Settings ##
 
