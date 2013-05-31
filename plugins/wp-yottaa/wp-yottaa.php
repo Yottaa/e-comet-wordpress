@@ -65,13 +65,13 @@ class WPYottaa {
    */
   function WPYottaaPurgeCommonObjects() {
     $yottaa_api = yottaa_api_wordpress();
-    $path_configs = array(array("condition" => "/", "name" => "URI"),
-                          array("condition" => "/feed/", "name" => "URI"),
-                          array("condition" => "/feed/atom/", "name" => "URI"),
-                          array("condition" => "/category/(.*)", "name" => "URI", "operator" => "REGEX"));
+    $path_configs = array(array("condition" => "/", "name" => "URI", "type" => "html"),
+                          array("condition" => "/feed/", "name" => "URI", "type" => "html"),
+                          array("condition" => "/feed/atom/", "name" => "URI", "type" => "html"),
+                          array("condition" => "/category/(.*)", "name" => "URI", "operator" => "REGEX", "type" => "html"));
     // Also purges page navigation
     if ($yottaa_api->getUpdatePageNavParameter() == 1) {
-      array_push($path_configs, array("condition" => "/page/(.*)", "name" => "URI", "operator" => "REGEX"));
+      array_push($path_configs, array("condition" => "/page/(.*)", "name" => "URI", "operator" => "REGEX", "type" => "html"));
     }
     if ($yottaa_api->getEnableLoggingParameter() == 1) {
       $yottaa_api->log('Flushed Yottaa cache for common objects.');
@@ -142,7 +142,7 @@ class WPYottaa {
       if ($yottaa_api->getEnableLoggingParameter() == 1) {
         $yottaa_api->log('Flushed Yottaa cache for post with id ' . $wpy_postid . ' and url ' . $wpy_url . '.');
       }
-      $results = $yottaa_api->flushPaths(array(array("condition" => $wpy_permalink, "name" => "URI")));
+      $results = $yottaa_api->flushPaths(array(array("condition" => $wpy_permalink, "name" => "URI", "type" => "html")));
       if ($yottaa_api->getEnableLoggingParameter() == 1) {
         $yottaa_api->log(json_encode($results));
       }
@@ -165,11 +165,11 @@ class WPYottaa {
     if ($yottaa_api->getAutoClearCacheParameter() == 1 && ($wpy_commentapproved == 1 || $wpy_commentapproved == 'trash') ) {
        $wpy_postid = $comment->comment_post_ID;
 
-       $path_configs = array(array("condition" => "/\\\?comments_popup=" . $wpy_postid, "name" => "URI", "operator" => "REGEX"));
+       $path_configs = array(array("condition" => "/\\\?comments_popup=" . $wpy_postid, "name" => "URI", "operator" => "REGEX", "type" => "html"));
 
        // Also purges comments navigation
        if ($yottaa_api -> getUpdateCommentNavParameter() == 1) {
-         array_push($path_configs, array("condition" => '/\\\?comments_popup=' . $wpy_postid . '&(.*)', "name" => "URI", "operator" => "REGEX"));
+         array_push($path_configs, array("condition" => '/\\\?comments_popup=' . $wpy_postid . '&(.*)', "name" => "URI", "operator" => "REGEX", "type" => "html"));
        }
        if ($yottaa_api->getEnableLoggingParameter() == 1) {
          $yottaa_api->log('Flushed Yottaa cache for comment with id ' . $wpy_commentid . '.');
@@ -432,10 +432,10 @@ class WPYottaa {
                                                . ' version of your website using the <a href="' . $yottaa_preview_url . '" target="_blank">preview URL</a>.'
                                                . '<br/>Before making your site live look over the links and configuration below.</div>';
                           }
-                          elseif ($yottaa_status == 'live') {
+                          elseif ($yottaa_api->isLive($yottaa_status)) {
                               echo '<div>Your site is currently in <span class="live">Live</span>.</div>';
                           }
-                          elseif ($yottaa_status == 'transparent proxy' || $yottaa_status == 'bypass') {
+                          elseif ($yottaa_api->isPaused($yottaa_status)) {
                               echo '<div>Your site is currently in <span class="paused">Paused (' . $yottaa_status .' mode)</span>.</div>';
                           }
                       }
@@ -455,7 +455,7 @@ class WPYottaa {
                           echo '<p><a href="https://apps.yottaa.com/framework/web/sites/' . $site_id . '" class="button-primary" target="_blank">' . __('Activate Account','wp-yottaa') . '</a></p>';
                           echo '<p>Activating your site allows all e-commerce visitors to receive the benefits out Yottaa\'s site speed optimizer.</p>';
                         }
-                        elseif ($yottaa_status == 'live') {
+                        elseif ($yottaa_api->isLive($yottaa_status)) {
                           echo '<p><input type="submit" name="wpyottaa_pause_optimizations"  class="button-primary" value="Pause Optimizations" /></p>';
                           echo '<p>Activating your site allows all e-commerce visitors to receive the benefits out Yottaa\'s site speed optimizer.</p>';
                         }

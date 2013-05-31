@@ -178,7 +178,7 @@ class YottaaWordpressAPI extends YottaaAPI {
                                     if ($match["condition"] == $full_pages_key && $match["name"] == "URI" && $match["type"] == "0" && $match["operator"] == "REGEX") {
                                         $only_cache_anonymous_users = $direction;
                                     }
-                                    if ($match["name"] == "Request-Header" && $match["header_name"] == "Cookie" && $match["condition"] == "wordpress_logged_in" && $match["type"] == "0" && $match["operator"] == "CONTAIN") {
+                                    if ($match["name"] == "Cookie" && $match["condition"] == "wordpress_logged_in" && $match["type"] == "0" && $match["operator"] == "CONTAIN") {
                                         $excluded_cookie = "set";
                                     }
                                     if ($match["condition"] == $admin_pages_key && $match["name"] == "URI" && $match["type"] == "0" && $match["operator"] == "CONTAIN") {

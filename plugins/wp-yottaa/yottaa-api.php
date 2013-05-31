@@ -8,9 +8,49 @@
 class YottaaAPI {
 
   /**
-   * The URL of the API.
+   * The URL of the production API.
    */
-  private $api = 'https://api.yottaa.com/';
+  const PROD_API = 'https://api.yottaa.com/';
+
+  /**
+   * The URL of the dev API.
+   */
+  const DEV_API = 'https://api-dev.yottaa.com/';
+
+  /**
+   * The partner id for creating new account.
+   */
+  const PROD_PARTNER_ID = '4d34f75b74b1553ba500007f';
+
+  /**
+   * The partner api key for creating new account.
+   */
+  const PROD_PARTNER_API_KEY = '455df7500258012f663b12313d145ceb';
+
+  /**
+   * The partner id for creating new account on dev.
+   */
+  const DEV_PARTNER_ID = '51a77cebebe2bb6fb00005a7';
+
+  /**
+   * The partner api key for creating new account on dev.
+   */
+  const DEV_PARTNER_API_KEY = '241e2e90ab730130d161123138106137';
+
+  /**
+   * The URL of the production API.
+   */
+  private $api;
+
+  /**
+   * The partner id for creating new account.
+   */
+  private $partner_id;
+
+  /**
+   * The partner api key for creating new account.
+   */
+  private $partner_api_key;
 
   /**
    * The API key.
@@ -30,10 +70,20 @@ class YottaaAPI {
   /**
    * Constructor.
    */
-  public function __construct($key, $uid, $sid) {
+  public function __construct($key, $uid, $sid, $dev_mode = FALSE) {
     $this->key = $key;
     $this->uid = $uid;
     $this->sid = $sid;
+    if ($dev_mode) {
+      $this->api = YottaaAPI::DEV_API;
+      $this->partner_id = YottaaAPI::DEV_PARTNER_ID;
+      $this->partner_api_key = YottaaAPI::DEV_PARTNER_API_KEY;
+    }
+    else {
+      $this->api = YottaaAPI::PROD_API;
+      $this->partner_id = YottaaAPI::PROD_PARTNER_ID;
+      $this->partner_api_key = YottaaAPI::PROD_PARTNER_API_KEY;
+    }
   }
 
   /**
@@ -53,24 +103,21 @@ class YottaaAPI {
    * @return mixed
    */
   public function createAccount($name, $email, $phone, $site) {
-    $user_id = '4d34f75b74b1553ba500007f';
-    $api_key = '455df7500258012f663b12313d145ceb';
-
     if (is_array($name)) {
-        $fname = isset($name['first_name']) ? $name['first_name'] : "";
-        $lname = isset($name['last_name']) ? $name['last_name'] : "";
+      $fname = isset($name['first_name']) ? $name['first_name'] : "";
+      $lname = isset($name['last_name']) ? $name['last_name'] : "";
     }
     else {
-        list($fname, $lname) = explode(" ", $name);
+      list($fname, $lname) = explode(" ", $name);
     }
 
-    return $this->call('partners/' . $user_id . '/accounts', array(
+    return $this->call('partners/' . $this->partner_id . '/accounts', array(
       'first_name' => $fname,
       'last_name' => $lname,
       'email' => $email,
       'phone' => $phone,
       'site' => $site,
-    ), 'POST', $api_key);
+    ), 'POST', $this->partner_api_key);
   }
 
   /**
@@ -122,12 +169,15 @@ class YottaaAPI {
    * @return mixed
    */
   public function flushPaths($path_configs) {
+    /*
     $aggregated_return = array();
     foreach ($path_configs as $path_config) {
       $result = $this->call('sites/' . $this->sid . '/purge_cache?user_id=' . $this->uid . '&type=html', $path_config, 'POST', $this->key, TRUE);
       array_push($aggregated_return, array("config" => $path_config, "result" => $result));
     }
-    return $aggregated_return;
+    */
+    $result = $this->call('sites/' . $this->sid . '/purge_cache?user_id=' . $this->uid , $path_configs, 'POST', $this->key, TRUE);
+    return array("config" => $path_configs, "result" => $result);
   }
 
   /**
@@ -224,7 +274,7 @@ class YottaaAPI {
     fclose($fp);
 
     if ($this->getEnableLoggingParameter() == 1) {
-        $this->log($result);
+      $this->log($result);
     }
 
     return $result;
@@ -377,5 +427,45 @@ class YottaaAPI {
    */
   public function getEnableLoggingParameter() {
     return 0;
+  }
+
+  /**
+   * Returns true for live status codes.
+   *
+   * @param $status
+   * @return bool
+   */
+  public function isLive($status) {
+    return "live" == $status;
+  }
+
+  /**
+   * Returns true for paused status codes.
+   *
+   * @param $status
+   * @return bool
+   */
+  public function isPaused($status) {
+    return "bypass" == $status || "transparent proxy" == $status;
+  }
+
+  /**
+   * Returns true for preview status codes.
+   *
+   * @param $status
+   * @return bool
+   */
+  public function isPreview($status) {
+    return "preview" == $status;
+  }
+
+  /**
+   * Returns true for valid status codes for both live and pause.
+   *
+   * @param $status
+   * @return bool
+   */
+  public function isValidStatus($status) {
+    return $this->isLive($status) || $this->isPaused($status);
   }
 }
