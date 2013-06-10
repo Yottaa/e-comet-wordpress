@@ -287,9 +287,16 @@ class WPYottaa {
               }
           } elseif (isset($_POST['wpyottaa_activate_account'])) {
           } elseif (isset($_POST['wpyottaa_pause_optimizations'])) {
-            $json_output = $yottaa_api->pause();
+            $json_output = $yottaa_api->bypass();
             if (!isset($json_output["error"])) {
-              $msg= '<div class="updated"><p>' . __('Your Yottaa optimizer has been paused.','wp-yottaa' ) .'</p></div>';
+              $msg= '<div class="updated"><p>' . __('Your Yottaa optimizer has been changed to bypass mode.','wp-yottaa' ) .'</p></div>';
+            } else {
+              $msg = '<div class="error"><p>' . __('Error received from pausing Yottaa optimizer:','wp-yottaa') . json_encode($json_output["error"]).'</p></div>';
+            }
+          } elseif (isset($_POST['wpyottaa_transparent_optimizations'])) {
+            $json_output = $yottaa_api->transparent();
+            if (!isset($json_output["error"])) {
+              $msg= '<div class="updated"><p>' . __('Your Yottaa optimizer has been changed to transparent proxy mode.','wp-yottaa' ) .'</p></div>';
             } else {
               $msg = '<div class="error"><p>' . __('Error received from pausing Yottaa optimizer:','wp-yottaa') . json_encode($json_output["error"]).'</p></div>';
             }
@@ -435,8 +442,11 @@ class WPYottaa {
                           elseif ($yottaa_api->isLive($yottaa_status)) {
                               echo '<div>Your site is currently in <span class="live">Live</span>.</div>';
                           }
-                          elseif ($yottaa_api->isPaused($yottaa_status)) {
-                              echo '<div>Your site is currently in <span class="paused">Paused (' . $yottaa_status .' mode)</span>.</div>';
+                          elseif ($yottaa_api->isBypass($yottaa_status)) {
+                              echo '<div>Your site is currently in <span class="paused">Bypass mode</span>.</div>';
+                          }
+                          elseif ($yottaa_api->isTransparent($yottaa_status)) {
+                              echo '<div>Your site is currently in <span class="paused">Transparent Proxy mode</span>.</div>';
                           }
                       }
                       else {
@@ -449,21 +459,26 @@ class WPYottaa {
                       echo '<div><a href="https://apps.yottaa.com/framework/web/sites/' . $site_id . '/optimizer" target="_blank">Yottaa Site Overview</a></div>';
                       echo '<div><a href="https://apps.yottaa.com/framework/web/sites/' . $site_id . '/settings" target="_blank">Yottaa Optimization Configuration</a></div>';
 
-                      echo '<h3>Actions</h3>';
+                      echo '<h3>Actions</h3><h4>Switch Optimizer Mode</h4>';
                       if (!isset($json_output["error"])) {
                         if ($yottaa_status == 'preview') {
-                          echo '<p><a href="https://apps.yottaa.com/framework/web/sites/' . $site_id . '" class="button-primary" target="_blank">' . __('Activate Account','wp-yottaa') . '</a></p>';
+                          echo '<p><a href="https://apps.yottaa.com/framework/web/sites/' . $site_id . '" class="button-primary button-mode" target="_blank">' . __('Activate Account','wp-yottaa') . '</a></p>';
                           echo '<p>Activating your site allows all e-commerce visitors to receive the benefits out Yottaa\'s site speed optimizer.</p>';
                         }
                         elseif ($yottaa_api->isLive($yottaa_status)) {
-                          echo '<p><input type="submit" name="wpyottaa_pause_optimizations"  class="button-primary" value="Pause Optimizations" /></p>';
-                          echo '<p>Activating your site allows all e-commerce visitors to receive the benefits out Yottaa\'s site speed optimizer.</p>';
+                          echo '<p><input type="submit" name="wpyottaa_pause_optimizations"  class="button-primary button-mode" value="Bypass Mode" /></p>';
+                          echo '<p>In Bypass Mode, Yottaa DNS will route all traffic to your origin server directly, by-passing optimizations, SSL termination and origin server shielding etc.</p>';
+                          echo '<p>Your origin servers IP address are visible to anyone in this mode.</p>';
+                          echo '<p><input type="submit" name="wpyottaa_transparent_optimizations"  class="button-primary button-mode" value="Transparent Proxy" /></p>';
+                          echo '<p>In Transparent Proxy Mode, Yottaa will proxy your site traffic through the Yottaa Network without applying any optimization. Other features such as SSL termination, site protection and Private Test are in effect as usual.</p>';
+                          echo '<p>Your origin servers IP address are shielded by Yottaa.</p>';
                         }
-                        elseif ($yottaa_status == 'transparent proxy' || $yottaa_status == 'bypass') {
-                          echo '<p><input type="submit" name="wpyottaa_resume_optimizations"  class="button-primary" value="Resume Optimizations" /></p>';
-                          echo '<p>Starting optimization will apply optimizations on your website within 5minutes.</p>';
+                        elseif ($yottaa_api->isPaused($yottaa_status)) {
+                          echo '<p><input type="submit" name="wpyottaa_resume_optimizations"  class="button-primary button-mode" value="Resume Optimizer" /></p>';
+                          echo '<p>Starting optimizer will apply optimizations on your website within 5 minutes.</p>';
                         }
-                        echo '<p><input type="submit" name="wpyottaa_clear_cache"  class="button-primary" value="Clear Cache" /></p>';
+                        echo '<h4>Other Actions</h4>';
+                        echo '<p><input type="submit" name="wpyottaa_clear_cache"  class="button-primary button-mode" value="Clear Cache" /></p>';
                         echo '<p>Clearing the cache will remove all of your sites resources from our CDN. Use this option if you have updated a resource (gif, css, JavaScript).</p>';
                       }
 

@@ -8,12 +8,12 @@
 class YottaaAPI {
 
   /**
-   * The URL of the production API.
+   * The endpoint of the production API.
    */
   const PROD_API = 'https://api.yottaa.com/';
 
   /**
-   * The URL of the dev API.
+   * The endpoint of the dev API.
    */
   const DEV_API = 'https://api-dev.yottaa.com/';
 
@@ -68,12 +68,20 @@ class YottaaAPI {
   private $sid;
 
   /**
-   * Constructor.
+   * Constructor
+   *
+   * @param $key API Key
+   * @param $uid User Id
+   * @param $sid Site Id
+   * @param bool $dev_mode Use dev api if true
+   * @param null $partner Custom partner id and partner key
    */
-  public function __construct($key, $uid, $sid, $dev_mode = FALSE) {
+  public function __construct($key, $uid, $sid, $dev_mode = FALSE, $partner = NULL)
+  {
     $this->key = $key;
     $this->uid = $uid;
     $this->sid = $sid;
+
     if ($dev_mode) {
       $this->api = YottaaAPI::DEV_API;
       $this->partner_id = YottaaAPI::DEV_PARTNER_ID;
@@ -84,17 +92,28 @@ class YottaaAPI {
       $this->partner_id = YottaaAPI::PROD_PARTNER_ID;
       $this->partner_api_key = YottaaAPI::PROD_PARTNER_API_KEY;
     }
+
+    if (!empty($partner)) {
+      if (isset($partner["id"])) {
+        $this->partner_id = $partner["id"];
+      }
+      if (isset($partner["key"])) {
+        $this->partner_api_key = $partner["key"];
+      }
+    }
   }
 
   /**
-   * Checks if it has all required parameters.
+   * Checks if tha API class instance has all required parameters.
+   *
+   * @return bool
    */
   public function isEmpty() {
     return empty($this->key) || empty($this->uid) || empty($this->sid);
   }
 
   /**
-   * Creates an account.
+   * Creates an account using the partner account.
    *
    * @param $name
    * @param $email
@@ -122,6 +141,8 @@ class YottaaAPI {
 
   /**
    * Returns Yottaa site full settings and performances post-processing.
+   *
+   * @return array
    */
   public function getSettings() {
     $result = $this->call('sites/' . $this->sid . '/settings', array(
@@ -132,6 +153,8 @@ class YottaaAPI {
 
   /**
    * Returns site status.
+   *
+   * @return mixed
    */
   public function getStatus() {
     return $this->call('sites/' . $this->sid, array(
@@ -155,6 +178,8 @@ class YottaaAPI {
 
   /**
    * Flushes cache.
+   *
+   * @return mixed
    */
   public function flush() {
     return $this->call('sites/' . $this->sid . '/flush_cache', array(
@@ -169,28 +194,41 @@ class YottaaAPI {
    * @return mixed
    */
   public function flushPaths($path_configs) {
-    /*
-    $aggregated_return = array();
-    foreach ($path_configs as $path_config) {
-      $result = $this->call('sites/' . $this->sid . '/purge_cache?user_id=' . $this->uid . '&type=html', $path_config, 'POST', $this->key, TRUE);
-      array_push($aggregated_return, array("config" => $path_config, "result" => $result));
-    }
-    */
     $result = $this->call('sites/' . $this->sid . '/purge_cache?user_id=' . $this->uid , $path_configs, 'POST', $this->key, TRUE);
     return array("config" => $path_configs, "result" => $result);
   }
 
   /**
-   * Pauses optimization.
+   * Pauses optimizer to bypass mode or transparent proxy mode.
+   *
+   * @param string $mode
+   * @return mixed
    */
-  public function pause() {
-    return $this->call('optimizers/' . $this->sid . '/pause', array(
+  public function pause($mode = 'bypass') {
+    $action = $mode == 'transparent proxy' ? 'transparent' : 'pause';
+    return $this->call('optimizers/' . $this->sid . '/' . $action , array(
       'user_id' => $this->uid,
     ), 'PUT', $this->key);
   }
 
   /**
+   * Transparent optimization.
+   */
+  public function transparent() {
+    return $this->pause('transparent proxy');
+  }
+
+  /**
+   * Bypass optimization.
+   */
+  public function bypass() {
+    return $this->pause();
+  }
+
+  /**
    * Resumes optimization.
+   *
+   * @return mixed
    */
   public function resume() {
     return $this->call('optimizers/' . $this->sid . '/resume', array(
@@ -205,7 +243,8 @@ class YottaaAPI {
    * @param $params
    * @param $method
    * @param $key
-   * @return mixed
+   * @param bool $post_json
+   * @return array|mixed
    */
   private function call($path, $params, $method, $key , $post_json=FALSE) {
     $output = $this->post_async($this->api . $path, $params, $method, $key, $post_json);
@@ -224,6 +263,7 @@ class YottaaAPI {
    * @param $params
    * @param $method
    * @param $api_key
+   * @param bool $post_json
    * @return string
    */
   private function post_async($url, $params, $method, $api_key, $post_json = FALSE) {
@@ -445,8 +485,18 @@ class YottaaAPI {
    * @param $status
    * @return bool
    */
-  public function isPaused($status) {
-    return "bypass" == $status || "transparent proxy" == $status;
+  public function isBypass($status) {
+    return "bypass" == $status;
+  }
+
+  /**
+   * Returns true for paused status codes.
+   *
+   * @param $status
+   * @return bool
+   */
+  public function isTransparent($status) {
+    return "transparent proxy" == $status;
   }
 
   /**
@@ -460,7 +510,17 @@ class YottaaAPI {
   }
 
   /**
-   * Returns true for valid status codes for both live and pause.
+   * Returns true for paused status codes.
+   *
+   * @param $status
+   * @return bool
+   */
+  public function isPaused($status) {
+    return $this->isBypass($status) || $this->isTransparent($status);
+  }
+
+  /**
+   * Returns true for valid status codes for both live and paused.
    *
    * @param $status
    * @return bool

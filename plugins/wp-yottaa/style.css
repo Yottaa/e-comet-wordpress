@@ -12,3 +12,8 @@
     height: 32px;
     float: right;
 }
+
+.button-mode {
+    width: 150px;
+    text-align: left;
+}
