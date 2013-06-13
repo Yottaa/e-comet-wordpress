@@ -508,8 +508,8 @@ class WPYottaa {
                       echo '<h3>Checklist</h3>';
                       $yottaa_settings = $yottaa_api->getSettings();
                       echo '<table>';
-                      echo '<tr><td><span class="row-title">Enable home page caching</span></td><td>';
-                      if ($yottaa_settings['home_page_caching'] == 'included') {
+                      echo '<tr><td><span class="row-title">Enable html page caching</span></td><td>';
+                      if ($yottaa_settings['site_pages_caching'] == 'included') {
                         echo '<span class="passed">Passed</span>';
                       } else {
                         echo '<span class="failed">Failed</span>';

@@ -152,7 +152,7 @@ class YottaaWordpressAPI extends YottaaAPI {
         $site_pages_key = ".html";
         $admin_pages_key = "/wp-admin";
 
-        $home_page_caching = 'unknown';
+        $site_pages_caching = 'unknown';
         $site_pages_caching = 'unknown';
         $admin_pages_caching = 'unknown';
 
@@ -164,6 +164,9 @@ class YottaaWordpressAPI extends YottaaAPI {
         if (isset($json_output["defaultActions"]) && isset($json_output["defaultActions"]["resourceActions"]) && isset($json_output["defaultActions"]["resourceActions"]["htmlCache"])) {
             $html_cachings = $json_output["defaultActions"]["resourceActions"]["htmlCache"];
             foreach ($html_cachings as &$html_caching) {
+                if ($html_caching["enabled"]) {
+                    $site_pages_caching = 'included';
+                }
                 if (isset($html_caching["filters"])) {
                     $filters = $html_caching["filters"];
                     foreach ($filters as &$filter) {
@@ -215,18 +218,19 @@ class YottaaWordpressAPI extends YottaaAPI {
             }
         }
 
+        /*
         if (isset($json_output["resourceRules"])) {
             $resourceRules = $json_output["resourceRules"];
             foreach ($resourceRules as &$resourceRule) {
                 if (isset($resourceRule["special_type"]) && $resourceRule["special_type"] == "home") {
                     if ($resourceRule["enabled"]) {
-                        $home_page_caching = 'included';
+                        $site_pages_caching = 'included';
                     }
                 }
             }
         }
-
-        return array('home_page_caching' => $home_page_caching,
+        */
+        return array('site_pages_caching' => $site_pages_caching,
                      'site_pages_caching' => $site_pages_caching,
                      'admin_pages_caching' => $admin_pages_caching,
                      'only_cache_anonymous_users' => $only_cache_anonymous_users,
