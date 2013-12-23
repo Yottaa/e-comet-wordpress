@@ -111,8 +111,6 @@ Whether you're already a Yottaa Site Optimizer user or want to try it for the fi
 
    2. Additional Settings:
 
-      Enable home page caching rule.
-
       If request URL contains query string: Unique cache
 
    3. Exceptions to HTML Caching:
