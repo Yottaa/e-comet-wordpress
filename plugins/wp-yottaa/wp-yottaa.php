@@ -42,6 +42,7 @@ class WPYottaa {
 
     // When xmlRPC call is made
     add_action('xmlrpc_call',array($this, 'WPYottaaPurgeAll'), 99);
+    add_action('xmlrpc_call',array($this, 'WPYottaaPurgeSelected'), 99);
 
     add_action('admin_enqueue_scripts', array($this, 'WPYottaaLoadCustomAdminStyle'));
   }
@@ -90,6 +91,31 @@ class WPYottaa {
       $yottaa_api->log('Flushed all Yottaa cache.');
     }
     return $yottaa_api->flush();
+  }
+
+  /**
+   * @return mixed
+   */
+  function WPYottaaPurgeSelected($paths_str) {
+    $yottaa_api = yottaa_api_wordpress();
+    $path_configs = array();
+    foreach (preg_split("/\\r\\n|\\r|\\n/", $paths_str) as $path) {
+      array_push($path_configs, array(
+        "condition" => $path,
+        "name" => "URI",
+        "operator" => "REGEX",
+        "type" => "html",
+      ));
+    }
+    if ($yottaa_api->getEnableLoggingParameter() == 1) {
+      $yottaa_api->log('Flushed Yottaa cache for');
+      $yottaa_api->log(json_encode($path_configs));
+    }
+    $json_output = $yottaa_api->flushPaths($path_configs);
+    if ($yottaa_api->getEnableLoggingParameter() == 1) {
+      $yottaa_api->log(json_encode($json_output));
+    }
+    return $json_output;
   }
 
   /**
@@ -285,6 +311,16 @@ class WPYottaa {
                 $error = $json_output["error"];
                 $msg = '<div class="error"><p>' . __('Error received from flushing Yottaa cache:','wp-yottaa') . json_encode($error).'</p></div>';
               }
+          } elseif (isset($_POST['wpyottaa_purge_cache'])) {
+              $json_output = $this->WPYottaaPurgeSelected($_POST[$yottaa_api->wpy_purge_cache_paths_optname]);
+
+              if (!isset($json_output["error"])) {
+                  $msg = '<div class="updated"><p>' . __('Cache items matched to your regular expression(s) have been removed from Yottaa CDN.','wp-yottaa' ) .'</p></div>';
+              }
+              else {
+                  $error = $json_output["error"];
+                  $msg = '<div class="error"><p>' . __('Error received from purging Yottaa cache:','wp-yottaa') . json_encode($error).'</p></div>';
+              }
           } elseif (isset($_POST['wpyottaa_activate_account'])) {
           } elseif (isset($_POST['wpyottaa_pause_optimizations'])) {
             $json_output = $yottaa_api->bypass();
@@ -477,9 +513,13 @@ class WPYottaa {
                           echo '<p><input type="submit" name="wpyottaa_resume_optimizations"  class="button-primary button-mode" value="Resume Optimizer" /></p>';
                           echo '<p>Starting optimizer will apply optimizations on your website within 5 minutes.</p>';
                         }
-                        echo '<h4>Other Actions</h4>';
+                        echo '<h4>Clear Cache (Full Flush)</h4>';
                         echo '<p><input type="submit" name="wpyottaa_clear_cache"  class="button-primary button-mode" value="Clear Cache" /></p>';
-                        echo '<p>Clearing the cache will remove all of your sites resources from our CDN. Use this option if you have updated a resource (gif, css, JavaScript).</p>';
+                        echo '<p>Clearing the cache will remove all of your sites resources from our CDN.</p>';
+                        echo '<h4>Clear Cache (Targeted Flush)</h4>';
+                        echo '<tr><td><textarea name="' . $yottaa_api->wpy_purge_cache_paths_optname .'" cols="70" rows="5"></textarea></td></tr>';
+                        echo '<p><input type="submit" name="wpyottaa_purge_cache"  class="button-primary button-mode" value="Purge Cache" /></p>';
+                        echo '<p>Clear Yottaa\'s site optimizer cache using provided regular expressions. Enter one regular expression for each line.</p>';
                       }
 
                       echo '<h3>Settings</h3>';

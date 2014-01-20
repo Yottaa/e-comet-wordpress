@@ -13,6 +13,7 @@ class YottaaWordpressAPI extends YottaaAPI {
   public $wpy_update_pagenav_optname = 'wpyottaa_update_pagenav_cache';
   public $wpy_update_commentnav_optname = 'wpyottaa_update_commentnav_cache';
   public $wpy_enable_logging_optname = 'wpyottaa_enable_logging';
+  public $wpy_purge_cache_paths_optname = 'wpyottaa_purge_cache_paths';
 
   public function __construct() {
     $key = get_option($this->wpy_api_key_optname, '');
